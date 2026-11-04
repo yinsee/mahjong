@@ -21,10 +21,11 @@ function circleDot(g, x, y, r, color) {
   g.restore();
 }
 
-function stick(g, x, y, len, color) {
+function stick(g, x, y, len, color, rot = 0) {
   const w = 22;
   g.save();
   g.translate(x, y);
+  if (rot) g.rotate(rot);
   g.fillStyle = color;
   const r = 10;
   g.beginPath();
@@ -83,7 +84,9 @@ const STICKS = {
   5: [[0.25, 0.27], [0.75, 0.27], [0.5, 0.5, 1], [0.25, 0.73], [0.75, 0.73]],
   6: [[0.2, 0.27], [0.5, 0.27], [0.8, 0.27], [0.2, 0.73], [0.5, 0.73], [0.8, 0.73]],
   7: [[0.5, 0.17, 1], [0.2, 0.5], [0.5, 0.5], [0.8, 0.5], [0.2, 0.83], [0.5, 0.83], [0.8, 0.83]],
-  8: [[0.14, 0.27], [0.38, 0.27], [0.62, 0.27], [0.86, 0.27], [0.14, 0.73], [0.38, 0.73], [0.62, 0.73], [0.86, 0.73]],
+  // 8 条: "M" on top (middle sticks lean together at the top), "W" below (lean together at the bottom)
+  8: [[0.12, 0.27], [0.39, 0.27, 0, 0.42], [0.61, 0.27, 0, -0.42], [0.88, 0.27],
+    [0.12, 0.73], [0.39, 0.73, 0, -0.42], [0.61, 0.73, 0, 0.42], [0.88, 0.73]],
   9: [[0.2, 0.17], [0.5, 0.17, 1], [0.8, 0.17], [0.2, 0.5], [0.5, 0.5, 1], [0.8, 0.5], [0.2, 0.83], [0.5, 0.83, 1], [0.8, 0.83]],
 };
 
@@ -123,7 +126,7 @@ function drawFace(t) {
     else {
       const rows = r === 7 || r === 9 ? 3 : 2;
       const len = rows === 3 ? 82 : 120;
-      STICKS[r].forEach(([x, y, red]) => stick(g, pad + x * iw, pad + y * ih, len, red ? RED : GREEN));
+      STICKS[r].forEach(([x, y, red, rot]) => stick(g, pad + x * iw, pad + y * ih, len, red ? RED : GREEN, rot));
     }
   } else if (t < 31) {
     g.fillStyle = NAVY;
