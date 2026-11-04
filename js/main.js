@@ -206,7 +206,8 @@ async function joinRoom() {
     toast('✅', 800);
   } catch (e) {
     console.warn(e);
-    toast(t('connFail'));
+    const key = e.type === 'peer-unavailable' ? 'noRoom' : e.type === 'p2p-blocked' ? 'p2pBlocked' : e.type === 'network' || e.type === 'server-error' ? 'netFail' : 'connFail';
+    toast(t(key), 7000);
   }
   $('#btn-join').disabled = false;
 }

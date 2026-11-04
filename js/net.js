@@ -1,4 +1,6 @@
 // PeerJS (WebRTC) networking. The host's peer id is derived from the room code.
+import { TURN_SERVERS } from "./config.js";
+
 const PREFIX = 'mjmayhem-v1-';
 const ALPHA = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 
@@ -16,6 +18,7 @@ function peerOpts() {
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' },
         { urls: 'stun:global.stun.twilio.com:3478' },
+        ...TURN_SERVERS,
       ],
     },
   };
@@ -40,9 +43,15 @@ export function joinPeer(code, { onData, onClose }) {
     const peer = new window.Peer(peerOpts());
     let done = false;
     const fail = e => { if (!done) { done = true; reject(e); try { peer.destroy(); } catch { /* ignore */ } } };
-    const timer = setTimeout(() => fail(new Error('timeout')), 15000);
+    let opened = false;
+    const timer = setTimeout(() => {
+      const e = new Error('timeout');
+      e.type = opened ? 'p2p-blocked' : 'network'; // signaling worked but no direct route
+      fail(e);
+    }, 15000);
     peer.on('error', fail);
     peer.on('open', () => {
+      opened = true;
       const conn = peer.connect(PREFIX + code.toUpperCase(), { reliable: true, serialization: 'json' });
       conn.on('open', () => { done = true; clearTimeout(timer); resolve({ peer, conn }); });
       conn.on('data', d => onData(d));
