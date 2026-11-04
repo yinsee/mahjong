@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#12091f">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Mahjong">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <title>麻将狂欢 Mahjong Mayhem</title>
+  <meta name="description" content="3D peer-to-peer multiplayer Guobiao mahjong">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@900&family=Lilita+One&family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🀄</text></svg>">
+  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="stage">
+    <div id="three"></div>
+    <div id="vignette"></div>
+
+    <!-- In-game HUD -->
+    <div id="hud" class="hidden">
+      <div id="topbar">
+        <div id="info-round" class="pill"></div>
+        <div id="info-wall" class="pill"></div>
+        <div id="info-room" class="pill"></div>
+        <div class="spacer"></div>
+        <button class="icon-btn" id="btn-fs" title="Fullscreen">⛶</button>
+        <button class="icon-btn" id="btn-fans" title="Fan table">📜</button>
+        <button class="icon-btn" id="btn-sfx" title="Sound">🔊</button>
+        <button class="icon-btn" id="btn-music" title="Music">🎵</button>
+        <button class="icon-btn lang-btn" id="btn-lang">EN</button>
+      </div>
+      <div class="badge" id="badge-0"></div>
+      <div class="badge" id="badge-1"></div>
+      <div class="badge" id="badge-2"></div>
+      <div class="badge" id="badge-3"></div>
+      <div id="status-line"></div>
+      <div id="hint"></div>
+      <div id="actions"></div>
+      <div id="emotes"></div>
+    </div>
+  </div>
+
+  <!-- Lobby -->
+  <div id="screen-lobby" class="screen">
+    <div class="lobby-card">
+      <div class="logo">
+        <div class="logo-zh">麻将狂欢</div>
+        <div class="logo-en">MAHJONG MAYHEM</div>
+        <div class="logo-sub" data-i18n="subtitle"></div>
+      </div>
+      <label class="field">
+        <span data-i18n="yourName"></span>
+        <input id="in-name" maxlength="14" autocomplete="off">
+      </label>
+      <div class="field">
+        <span data-i18n="pickAvatar"></span>
+        <div id="avatars"></div>
+      </div>
+      <button class="btn btn-gold" id="btn-create"><span data-i18n="createRoom"></span></button>
+      <div class="join-row">
+        <input id="in-code" maxlength="5" data-i18n-ph="roomCode" autocomplete="off">
+        <button class="btn btn-blue" id="btn-join"><span data-i18n="join"></span></button>
+      </div>
+      <button class="btn btn-green" id="btn-practice"><span data-i18n="practice"></span></button>
+      <div class="lobby-foot">
+        <button class="link-btn" id="btn-fans2" data-i18n="fanTable"></button>
+        <button class="link-btn" id="btn-lang2">中文 / English</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Room -->
+  <div id="screen-room" class="screen hidden">
+    <div class="lobby-card room-card">
+      <div class="room-head">
+        <span data-i18n="room"></span>
+        <div id="room-code"></div>
+        <button class="btn btn-small" id="btn-copy" data-i18n="shareLink"></button>
+      </div>
+      <div id="seats"></div>
+      <div id="room-opts">
+        <span data-i18n="hands"></span>
+        <select id="sel-hands">
+          <option value="4" data-i18n="oneRound"></option>
+          <option value="8" data-i18n="twoRounds"></option>
+          <option value="16" data-i18n="fullGame"></option>
+        </select>
+      </div>
+      <div id="room-status"></div>
+      <button class="btn btn-gold" id="btn-start" data-i18n="start"></button>
+      <button class="btn btn-small btn-ghost" id="btn-leave" data-i18n="leave"></button>
+    </div>
+  </div>
+
+  <div id="modal-result" class="modal hidden"><div class="modal-card" id="result-card"></div></div>
+  <div id="modal-final" class="modal hidden"><div class="modal-card" id="final-card"></div></div>
+  <div id="modal-fans" class="modal hidden"><div class="modal-card fans-card" id="fans-card"></div></div>
+
+  <canvas id="fx-canvas"></canvas>
+  <div id="fx-layer"></div>
+  <div id="toast"></div>
+  <div id="rotate">
+    <div class="rot-phone">📱</div>
+    <div class="rot-zh">请横屏游戏</div>
+    <div class="rot-en">Rotate your phone to landscape</div>
+    <button class="btn btn-gold" id="btn-rot-fs">⛶ 全屏 Fullscreen</button>
+  </div>
+  <div id="loading"><div class="spinner">🀄</div><div data-i18n="loading">Loading…</div></div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "name": "麻将狂欢 Mahjong Mayhem",
+  "short_name": "Mahjong",
+  "start_url": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#12091f",
+  "theme_color": "#12091f",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

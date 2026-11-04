@@ -1,0 +1,11 @@
+{
+  "name": "mahjong-mayhem",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "3D peer-to-peer multiplayer Guobiao (MCR) mahjong",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/scoring.test.js && node test/sim.test.js"
+  }
+}
