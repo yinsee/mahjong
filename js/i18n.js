@@ -93,7 +93,7 @@ const TAUNTS = {
 };
 
 let lang = 'zh';
-try { lang = localStorage.getItem('mj_lang') || (navigator.language.startsWith('zh') ? 'zh' : 'en'); } catch { /* ignore */ }
+try { lang = localStorage.getItem('mj_lang') || 'zh'; } catch { /* ignore */ }
 
 export const getLang = () => lang;
 export function setLang(l) {
