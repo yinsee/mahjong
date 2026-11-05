@@ -24,6 +24,17 @@ function checkInvariants(g, where) {
     console.error(`INVARIANT tile count ${ids.length}/${set.size} at ${where}`);
     process.exit(1);
   }
+  if (g.phase === 'claim') {
+    // nobody may still be asked once their claim can no longer win
+    const cl = g.claim;
+    const order = [1, 2, 3].map(k => (cl.from + k) % 4);
+    const huIdx = order.findIndex(s => cl.responses[s] && cl.responses[s].type === 'hu');
+    const pk = order.some(s => cl.responses[s] && ['pon', 'kan'].includes(cl.responses[s].type));
+    for (const s of g.pendingActors()) {
+      const ok = huIdx >= 0 ? cl.options[s].hu && order.indexOf(s) < huIdx : !pk || cl.options[s].hu;
+      if (!ok) { console.error(`INVARIANT seat ${s} still asked after a winning claim at ${where}`); process.exit(1); }
+    }
+  }
   for (const p of g.players) {
     const expect = 13 - 3 * p.melds.length;
     const n = p.hand.length;
@@ -62,6 +73,7 @@ for (let gi = 0; gi < GAMES; gi++) {
     }
     const actors = g.pendingActors();
     for (const s of actors) {
+      if (!g.pendingActors().includes(s)) continue; // auto-passed after a winning claim
       const v = g.viewFor(s);
       const a = g.phase === 'claim' ? botClaim(v) : botTurn(v);
       if (!a) { console.error('bot returned no action', g.phase, s); process.exit(1); }

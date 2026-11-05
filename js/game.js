@@ -233,9 +233,26 @@ export class Game {
     else if (a.type === 'kan' && o.kan) r = { type: 'kan' };
     else if (a.type === 'chi' && o.chi && o.chi.includes(a.base)) r = { type: 'chi', base: a.base };
     cl.responses[seat] = r;
+    this.autoPassBeaten(cl);
     this.emit({ type: 'responded', seat });
     if (this.pendingActors().length === 0) this.resolveClaims();
     return true;
+  }
+
+  // Stop asking seats whose claim can no longer win:
+  // after a 胡, only an earlier seat (in turn order) that can also 胡 is still asked;
+  // after a 碰/杠, only seats that can 胡 are still asked (a 吃 can never beat it).
+  autoPassBeaten(cl) {
+    const order = [1, 2, 3].map(k => (cl.from + k) % 4);
+    const huIdx = order.findIndex(s => cl.responses[s] && cl.responses[s].type === 'hu');
+    const hasPonKan = order.some(s => cl.responses[s] && (cl.responses[s].type === 'pon' || cl.responses[s].type === 'kan'));
+    if (huIdx < 0 && !hasPonKan) return;
+    order.forEach((s, i) => {
+      const o = cl.options[s];
+      if (!o || cl.responses[s]) return;
+      const canStillWin = huIdx >= 0 ? !!o.hu && i < huIdx : !!o.hu;
+      if (!canStillWin) cl.responses[s] = { type: 'pass' };
+    });
   }
 
   // auto-pass everyone still pending (timeouts)
